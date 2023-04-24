@@ -15,6 +15,12 @@ import { body, param, query } from 'express-validator';
 
 const router = Router();
 
+router.get('/all', async (req: UserRequest, res: UserResponse<UserOutput[]>) => {
+  const users: IUser[] = await User.find().catch(() => []);
+
+  return res.status(200).json(users);
+});
+
 router.get(
   '/:id',
   param('id').notEmpty().isString().isMongoId(),

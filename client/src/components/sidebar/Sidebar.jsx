@@ -10,21 +10,41 @@ import {
   Event,
   School,
 } from '@material-ui/icons';
-import { Users } from '../../dummyData';
 import CloseFriend from '../closeFriend/CloseFriend';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 export default function Sidebar() {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const getUsers = async () => {
+      try {
+        const userList = await axios.get('/users/all');
+        setUsers(userList.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    getUsers();
+  }, []);
+
   return (
     <div className="sidebar">
       <div className="sidebarWrapper">
         <ul className="sidebarList">
           <li className="sidebarListItem">
             <RssFeed className="sidebarIcon" />
-            <span className="sidebarListItemText">Feed</span>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+              <span className="sidebarListItemText">Feed</span>
+            </Link>
           </li>
           <li className="sidebarListItem">
             <Chat className="sidebarIcon" />
-            <span className="sidebarListItemText">Chats</span>
+            <Link to="/messenger" style={{ textDecoration: 'none' }}>
+              <span className="sidebarListItemText">Chats</span>
+            </Link>
           </li>
           <li className="sidebarListItem">
             <PlayCircleFilledOutlined className="sidebarIcon" />
@@ -58,7 +78,7 @@ export default function Sidebar() {
         <button className="sidebarButton">Show More</button>
         <hr className="sidebarHr" />
         <ul className="sidebarFriendList">
-          {Users.map((u) => (
+          {users.map((u) => (
             <CloseFriend key={u.id} user={u} />
           ))}
         </ul>

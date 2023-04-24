@@ -26,9 +26,7 @@ export default function Post({ post }) {
   }, [post.userId]);
 
   const likeHandler = () => {
-    try {
-      axios.patch('/posts' + '/like/' + post._id, { userId: currentUser._id });
-    } catch (err) {}
+    axios.patch('/posts' + '/like/' + post._id, { userId: currentUser._id }).catch(() => {});
     setLike(isLiked ? like - 1 : like + 1);
     setIsLiked(!isLiked);
   };
