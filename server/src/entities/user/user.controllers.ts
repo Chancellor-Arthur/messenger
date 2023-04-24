@@ -3,6 +3,7 @@ import { ConflictError, ForbiddenError, NotFoundError } from '../../lib/errors';
 import { crypt } from '../../lib/crypt';
 import User, { IUser } from './user.model';
 import {
+  PartialFriendOutput,
   PartialUserOutput,
   PatchUserInput,
   UserIdComponent,
@@ -10,7 +11,7 @@ import {
   UserRequest,
   UserResponse,
 } from './user.types';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 const router = Router();
 
@@ -20,11 +21,44 @@ router.get(
   async (req: UserRequest<{ id: string }>, res: UserResponse<PartialUserOutput>) => {
     const user: IUser | null = await User.findById(req.params.id).catch(() => null);
 
-    if (!user) return new NotFoundError('Не удалось найти пользователя').getExpressError(res);
+    if (!user) return new NotFoundError('Не удалось найти пользователя').callExpressError(res);
 
     const { password, createdAt, updatedAt, __v, ...partialUser } = user.toJSON();
 
     return res.status(200).json(partialUser as PartialUserOutput);
+  },
+);
+
+router.get(
+  '/',
+  query('username').notEmpty().isString(),
+  async (req: UserRequest<{}, {}, { username: string }>, res: UserResponse<PartialUserOutput>) => {
+    const user: IUser | null = await User.findOne({ username: req.query.username }).catch(() => null);
+
+    if (!user) return new NotFoundError('Не удалось найти пользователя').callExpressError(res);
+
+    const { password, createdAt, updatedAt, __v, ...partialUser } = user.toJSON();
+
+    return res.status(200).json(partialUser as PartialUserOutput);
+  },
+);
+
+router.get(
+  '/friends/:id',
+  param('id').notEmpty().isString().isMongoId(),
+  async (req: UserRequest<{ id: string }>, res: UserResponse<PartialFriendOutput[]>) => {
+    const user: IUser | null = await User.findById(req.params.id).catch(() => null);
+
+    if (!user) return new NotFoundError('Не удалось найти пользователя').callExpressError(res);
+
+    const friends: IUser[] = await User.find({ userId: { $in: user.followings } }).catch((err) => []);
+
+    const partialFriends = friends.map((friend) => {
+      const { _id, username, avatar } = friend;
+      return { _id, username, avatar };
+    });
+
+    res.status(200).json(partialFriends);
   },
 );
 
@@ -37,6 +71,7 @@ router.patch(
   body('password').notEmpty().isString().isLength({ min: 6 }),
   body('description').isString().isLength({ max: 100 }),
   body('avatar').isString(),
+  body('cover').isString(),
   body('city').isString().isLength({ max: 50 }),
   body('from').isString().isLength({ max: 50 }),
   body('relationship').isString().isIn(['Single', 'Married', 'Complicated']),
@@ -49,12 +84,12 @@ router.patch(
         () => null,
       );
 
-      if (!user) return new NotFoundError('Не удалось найти пользователя для обновления').getExpressError(res);
+      if (!user) return new NotFoundError('Не удалось найти пользователя для обновления').callExpressError(res);
 
       return res.status(201).json(user);
     }
 
-    return new ForbiddenError('Недостаточно прав').getExpressError(res);
+    return new ForbiddenError('Недостаточно прав').callExpressError(res);
   },
 );
 
@@ -64,29 +99,29 @@ router.delete(
   async (req: UserRequest<{ id: string }, UserIdComponent>, res: UserResponse<{}>) => {
     if (req.body.userId === req.params.id || res.locals.user.isAdmin) {
       await User.findByIdAndDelete(req.params.id).catch(() =>
-        new NotFoundError('Не удалось найти пользователя для удаления').getExpressError(res),
+        new NotFoundError('Не удалось найти пользователя для удаления').callExpressError(res),
       );
 
       return res.status(204).json({});
     }
 
-    return new ForbiddenError('Недостаточно прав').getExpressError(res);
+    return new ForbiddenError('Недостаточно прав').callExpressError(res);
   },
 );
 
 router.patch(
-  '/:id/follow',
+  '/follow/:id',
   param('id').notEmpty().isString().isMongoId(),
   async (req: UserRequest<{ id: string }, UserIdComponent>, res: UserResponse<{}>) => {
     if (req.body.userId !== req.params.id) {
       const user: IUser | null = await User.findById(req.params.id).catch(() => null);
 
       if (!user)
-        return new NotFoundError('Не удалось найти пользователя для оформления подписки на него').getExpressError(res);
+        return new NotFoundError('Не удалось найти пользователя для оформления подписки на него').callExpressError(res);
 
       const currentUser: IUser | null = await User.findById(req.body.userId).catch(() => null);
 
-      if (!currentUser) return new NotFoundError('Не удалось найти текущего пользователя').getExpressError(res);
+      if (!currentUser) return new NotFoundError('Не удалось найти текущего пользователя').callExpressError(res);
 
       if (!user.followers?.includes(currentUser._id)) {
         await user.updateOne({ $push: { followers: currentUser._id } });
@@ -95,25 +130,25 @@ router.patch(
         return res.status(204).json({});
       }
 
-      return new ConflictError('Подписка уже была оформлена').getExpressError(res);
+      return new ConflictError('Подписка уже была оформлена').callExpressError(res);
     }
 
-    return new ConflictError('Невозможно подписаться на себя').getExpressError(res);
+    return new ConflictError('Невозможно подписаться на себя').callExpressError(res);
   },
 );
 
 router.patch(
-  '/:id/unfollow',
+  '/unfollow/:id',
   param('id').notEmpty().isString().isMongoId(),
   async (req: UserRequest<{ id: string }, UserIdComponent>, res: UserResponse<{}>) => {
     if (req.body.userId !== req.params.id) {
       const user: IUser | null = await User.findById(req.params.id).catch(() => null);
 
-      if (!user) return new NotFoundError('Не удалось найти пользователя для отписки от него').getExpressError(res);
+      if (!user) return new NotFoundError('Не удалось найти пользователя для отписки от него').callExpressError(res);
 
       const currentUser: IUser | null = await User.findById(req.body.userId).catch(() => null);
 
-      if (!currentUser) return new NotFoundError('Не удалось найти текущего пользователя').getExpressError(res);
+      if (!currentUser) return new NotFoundError('Не удалось найти текущего пользователя').callExpressError(res);
 
       if (user.followers?.includes(currentUser._id)) {
         await user.updateOne({ $pull: { followers: currentUser._id } });
@@ -122,10 +157,10 @@ router.patch(
         return res.status(204).json({});
       }
 
-      return new ConflictError('Невозможно отписаться без наличия подписки').getExpressError(res);
+      return new ConflictError('Невозможно отписаться без наличия подписки').callExpressError(res);
     }
 
-    return new ConflictError('Невозможно отписаться от себя').getExpressError(res);
+    return new ConflictError('Невозможно отписаться от себя').callExpressError(res);
   },
 );
 

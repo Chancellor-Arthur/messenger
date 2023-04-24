@@ -24,7 +24,7 @@
 .loginLogo {
   font-size: 50px;
   font-weight: 800;
-  color: forestgreen;
+  color: #1775ee;
   margin-bottom: 10px;
 }
 
@@ -63,6 +63,14 @@
   font-size: 20px;
   font-weight: 500;
   cursor: pointer;
+}
+
+.loginButton:focus {
+  outline: none;
+}
+
+.loginButton:disabled {
+  cursor: not-allowed;
 }
 
 .loginForgot {

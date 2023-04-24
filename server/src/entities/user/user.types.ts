@@ -11,3 +11,5 @@ export type PatchUserInput = Partial<IUser> & UserIdComponent;
 export type UserOutput = IUser;
 
 export type PartialUserOutput = Omit<IUser, 'password' | 'createdAt' | 'updatedAt' | '__v'>;
+
+export type PartialFriendOutput = Pick<IUser, '_id' | 'username' | 'avatar'>;

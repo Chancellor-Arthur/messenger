@@ -19,7 +19,7 @@ class AppError {
     this.statusCode = statusCode;
   }
 
-  getExpressError(res: Response) {
+  callExpressError(res: Response) {
     return res.status(this.statusCode).json({ statusCode: this.statusCode, message: this.message });
   }
 }

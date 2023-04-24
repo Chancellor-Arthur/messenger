@@ -22,7 +22,7 @@ router.post(
 
     await user.save().catch((err) => {
       console.error(err);
-      return new InternalError('Не удалось зарегистрировать пользователя').getExpressError(res);
+      return new InternalError('Не удалось зарегистрировать пользователя').callExpressError(res);
     });
 
     return res.status(201).json(user);
@@ -34,11 +34,11 @@ router.post(
   body('email').notEmpty().isEmail().isLength({ max: 50 }),
   body('password').notEmpty().isString().isLength({ min: 6 }),
   async (req: AuthRequest<LoginInput>, res: AuthResponse<AuthOutput>) => {
-    const user: IUser | undefined = (await User.findOne({ email: req.body.email })) || undefined;
-    if (!user) return new NotFoundError(`Пользователь с таким email не найден`).getExpressError(res);
+    const user: IUser | null = await User.findOne({ email: req.body.email }).catch((err) => null);
+    if (!user) return new NotFoundError(`Пользователь с таким email не найден`).callExpressError(res);
 
     const isValidPassword = compareSync(req.body.password, user!.password);
-    if (!isValidPassword) return new BadRequestError('Неверный пароль').getExpressError(res);
+    if (!isValidPassword) return new BadRequestError('Неверный пароль').callExpressError(res);
 
     return res.status(200).json(user);
   },

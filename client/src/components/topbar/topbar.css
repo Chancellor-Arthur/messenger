@@ -1,7 +1,7 @@
-.topBarContainer {
+.topbarContainer {
   height: 50px;
   width: 100%;
-  background-color: forestgreen;
+  background-color: #864db6;
   display: flex;
   align-items: center;
   position: sticky;
@@ -9,7 +9,7 @@
   z-index: 999;
 }
 
-.topBarLeft {
+.topbarLeft {
   flex: 3;
 }
 
@@ -21,7 +21,7 @@
   cursor: pointer;
 }
 
-.topBarCenter {
+.topbarCenter {
   flex: 5;
 }
 
@@ -48,7 +48,7 @@
   outline: none;
 }
 
-.topBarRight {
+.topbarRight {
   flex: 4;
   display: flex;
   align-items: center;
@@ -56,23 +56,23 @@
   color: white;
 }
 
-.topBarLink {
+.topbarLink {
   margin-right: 10px;
   font-size: 14px;
   cursor: pointer;
 }
 
-.topBarIcons {
+.topbarIcons {
   display: flex;
 }
 
-.topBarIconItem {
+.topbarIconItem {
   margin-right: 15px;
   cursor: pointer;
   position: relative;
 }
 
-.topBarIconBadge {
+.topbarIconBadge {
   width: 15px;
   height: 15px;
   background-color: red;
@@ -87,10 +87,16 @@
   font-size: 12px;
 }
 
-.topBarImg {
+.topbarImg {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
+}
+
+@media screen and (max-width: 768px) {
+  .topbarLink {
+    display: none;
+  }
 }

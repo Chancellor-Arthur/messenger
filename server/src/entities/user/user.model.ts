@@ -12,6 +12,7 @@ export interface IUser extends Document {
   description?: string;
   password: string;
   avatar?: string;
+  cover?: string;
   city?: string;
   from?: string;
   relationship?: Relationship;
@@ -47,6 +48,10 @@ const UserSchema = new Schema<IUser>(
       min: 6,
     },
     avatar: {
+      type: String,
+      default: '',
+    },
+    cover: {
       type: String,
       default: '',
     },
