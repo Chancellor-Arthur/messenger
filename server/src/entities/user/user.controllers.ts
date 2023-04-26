@@ -57,7 +57,7 @@ router.get(
 
     if (!user) return new NotFoundError('Не удалось найти пользователя').callExpressError(res);
 
-    const friends: IUser[] = await User.find({ userId: { $in: user.followings } }).catch((err) => []);
+    const friends: IUser[] = await User.find({ _id: { $in: user.followings } }).catch((err) => []);
 
     const partialFriends = friends.map((friend) => {
       const { _id, username, avatar } = friend;

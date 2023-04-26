@@ -42,7 +42,7 @@ export default function Profile() {
           </div>
           <div className="profileRightBottom">
             <Feed username={username} />
-            <ProfileRightbar user={user} />
+            {user._id && <ProfileRightbar user={user} />}
           </div>
         </div>
       </div>
