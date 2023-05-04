@@ -42,15 +42,16 @@
   width: 80%;
   height: 90px;
   padding: 10px;
+  border-radius: 10px;
 }
 
 .chatSubmitButton {
-  width: 70px;
+  width: 100px;
   height: 40px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  background-color: teal;
+  background-color: #c483ff;
   color: white;
 }
 
